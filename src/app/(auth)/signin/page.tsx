@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useAuth, authService, ROLE_LABEL, type Role } from "@/features/auth";
 import { Button } from "@/components/ui/button";
@@ -173,6 +173,30 @@ export default function SignInPage() {
           Click a card to autofill · password: <code className="text-text">demo1234</code>
         </p>
       </div>
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-md"
+          >
+            <div className="flex flex-col items-center gap-4 max-w-xs text-center p-6 rounded-2xl glass-strong border border-border/30 shadow-2xl">
+              <div className="relative h-16 w-16">
+                <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
+                <div className="absolute inset-0 rounded-full border-2 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin h-16 w-16" />
+                <div className="absolute inset-0 flex items-center justify-center font-bold text-lg text-primary">
+                  H
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold text-text text-sm">Verifying Credentials</h3>
+                <p className="text-xs text-muted mt-1">Securing your session at HostelHub...</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/features/auth";
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { ProgressBar } from "@/components/shared/progress-bar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -45,7 +46,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen mesh-bg text-text font-sans antialiased">
         <ThemeProvider>
           <AuthProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              <ProgressBar />
+              {children}
+            </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
