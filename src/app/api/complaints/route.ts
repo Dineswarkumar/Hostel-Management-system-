@@ -1,87 +1,84 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { broadcastSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
+import { validateBody } from "@/lib/api";
+import { complaintSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-    const status = searchParams.get("status");
-    const assignedToId = searchParams.get("assignedToId");
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if ("error" in auth) return auth.error;
 
-    const where: any = {};
-    if (userId) where.userId = userId;
-    if (status) where.status = status;
-    if (assignedToId) where.assignedToId = assignedToId;
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get("status");
+  const assignedToId = searchParams.get("assignedToId");
 
-    const complaints = await prisma.complaint.findMany({
-      where,
-      include: {
-        user: {
-          select: {
-            phone: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const parsed = complaints.map((c) => ({
-      ...c,
-      photos: JSON.parse(c.photos || "[]"),
-      userPhone: c.user?.phone || null,
-      userEmail: c.user?.email || null,
-    }));
-
-    return NextResponse.json(parsed);
-  } catch (error: any) {
-    console.error("Fetch complaints error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+  const where: Record<string, unknown> = {};
+  // Students can only see their own; staff/admin/super see all (or filtered)
+  if (auth.user.role === "STUDENT") {
+    where.userId = auth.user.id;
+  } else if (assignedToId) {
+    where.assignedToId = assignedToId;
   }
+  if (status) where.status = status;
+
+  const complaints = await prisma.complaint.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+  });
+  const parsed = complaints.map((c) => ({
+    ...c,
+    photos: safeParse(c.photos),
+  }));
+  return NextResponse.json(parsed);
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request, ["STUDENT"]);
+  if ("error" in auth) return auth.error;
+
+  const v = await validateBody(request, complaintSchema);
+  if ("error" in v) return v.error;
+
+  if (v.data.userId !== auth.user.id) {
+    return NextResponse.json(
+      { error: "userId does not match session" },
+      { status: 403 }
+    );
+  }
+
+  // Generate a unique complaint id
+  const count = await prisma.complaint.count();
+  const id = `C-${2489 + count + 1}`;
+
+  const complaint = await prisma.complaint.create({
+    data: {
+      id,
+      userId: auth.user.id,
+      userName: v.data.userName,
+      userRoom: v.data.userRoom ?? null,
+      category: v.data.category,
+      title: v.data.title,
+      description: v.data.description,
+      photos: JSON.stringify(v.data.photos),
+      priority: v.data.priority,
+      status: "PENDING",
+    },
+  });
+
+  const responseData = { ...complaint, photos: v.data.photos };
+  broadcastSSE("NEW_COMPLAINT", responseData);
+  return NextResponse.json(responseData);
+}
+
+function safeParse(s: string | null | undefined): string[] {
+  if (!s) return [];
   try {
-    const body = await request.json();
-    const { userId, userName, userRoom, category, title, description, priority, photos } = body;
-
-    if (!userId || !userName || !category || !title || !description || !priority) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    // Generate unique complaint ID: count existing and offset
-    const count = await prisma.complaint.count();
-    const complaintId = `C-${2489 + count + 1}`;
-
-    const complaint = await prisma.complaint.create({
-      data: {
-        id: complaintId,
-        userId,
-        userName,
-        userRoom: userRoom || null,
-        category,
-        title,
-        description,
-        photos: JSON.stringify(photos || []),
-        priority,
-        status: "PENDING",
-      },
-    });
-
-    const responseData = {
-      ...complaint,
-      photos: photos || [],
-    };
-
-    // Broadcast new complaint
-    broadcastSSE("NEW_COMPLAINT", responseData);
-
-    return NextResponse.json(responseData);
-  } catch (error: any) {
-    console.error("Create complaint error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+    const v = JSON.parse(s);
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
   }
 }

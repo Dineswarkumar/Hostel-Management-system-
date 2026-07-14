@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
 import { addSSEClient, removeSSEClient } from "@/lib/sse";
+import { getCurrentUserFromRequest } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const userId = url.searchParams.get("userId") || "anonymous";
+  const user = await getCurrentUserFromRequest(req);
+  const userId = user?.id ?? "anonymous";
 
   let controllerRef: ReadableStreamDefaultController | null = null;
 
@@ -13,30 +14,19 @@ export async function GET(req: NextRequest) {
     start(controller) {
       controllerRef = controller;
       addSSEClient(userId, controller);
-
-      // Send initial connect message
       const encoder = new TextEncoder();
-      controller.enqueue(encoder.encode(": connected\n\n"));
+      controller.enqueue(encoder.encode(`: connected ${userId}\n\n`));
     },
     cancel() {
-      if (controllerRef) {
-        removeSSEClient(controllerRef);
-      }
+      if (controllerRef) removeSSEClient(controllerRef);
     },
-  });
-
-  // Handle client abort / disconnect
-  req.signal.addEventListener("abort", () => {
-    if (controllerRef) {
-      removeSSEClient(controllerRef);
-    }
   });
 
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
-      "Connection": "keep-alive",
+      Connection: "keep-alive",
     },
   });
 }

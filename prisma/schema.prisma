@@ -19,12 +19,15 @@ model User {
   blockName     String?
   avatarUrl     String?
   parentPhone   String?
+  active        Boolean  @default(true)
   createdAt     DateTime @default(now())
   password      String   // Plain text password for local demo accounts
 
   complaints    Complaint[]
   busVotes      BusVote[]
   announcements Announcement[]
+  leaves        Leave[]
+  invoices      FeeInvoice[]
 }
 
 model Announcement {
@@ -102,4 +105,23 @@ model FeeInvoice {
   status        String   // "PENDING" | "PAID" | "OVERDUE" | "FAILED"
   paidAt        DateTime?
   transactionId String?
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Leave {
+  id           String   @id @default(uuid())
+  userId       String
+  userName     String
+  userRoom     String?
+  fromDate     String   // ISO date string (YYYY-MM-DD)
+  toDate       String   // ISO date string (YYYY-MM-DD)
+  reason       String
+  status       String   // "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"
+  approverId   String?
+  approverName String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

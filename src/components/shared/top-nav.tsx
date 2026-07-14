@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, User as UserIcon, LogOut, Settings } from "lucide-react";
+import { Bell, User as UserIcon, LogOut, Settings, CalendarCheck } from "lucide-react";
 import { useAuth, ROLE_LABEL } from "@/features/auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ const NAV_ITEMS: Record<string, Array<{ href: string; label: string }>> = {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/announcements", label: "Announcements" },
     { href: "/complaints", label: "Complaints" },
+    { href: "/leaves", label: "Leaves" },
     { href: "/bus", label: "Bus" },
     { href: "/mess", label: "Mess" },
     { href: "/fees", label: "Fees" },
@@ -22,11 +23,13 @@ const NAV_ITEMS: Record<string, Array<{ href: string; label: string }>> = {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/announcements", label: "Announcements" },
     { href: "/complaints", label: "Tasks" },
+    { href: "/leaves", label: "Leaves" },
   ],
   ADMIN: [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/announcements", label: "Announcements" },
     { href: "/complaints", label: "Complaints" },
+    { href: "/leaves", label: "Leaves" },
     { href: "/bus", label: "Bus" },
     { href: "/mess", label: "Mess" },
     { href: "/fees", label: "Fees" },
@@ -36,6 +39,7 @@ const NAV_ITEMS: Record<string, Array<{ href: string; label: string }>> = {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/announcements", label: "Announcements" },
     { href: "/admin/users", label: "Users" },
+    { href: "/fees", label: "Fees" },
     { href: "/admin/system", label: "System" },
   ],
 };
@@ -114,6 +118,13 @@ export function TopNav() {
                       onClick={() => setMenuOpen(false)}
                     >
                       <UserIcon className="h-4 w-4" /> Profile
+                    </Link>
+                    <Link
+                      href="/leaves"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-surface-2/60"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <CalendarCheck className="h-4 w-4" /> Outpass & Leaves
                     </Link>
                     <Link
                       href="/account/settings"

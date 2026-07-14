@@ -173,6 +173,15 @@ export const authService = {
   /** Synchronous read from localStorage — used in initial load. */
   readSession,
 
+  /** Update active user details in localStorage session. */
+  updateSession(user: User) {
+    const session = readSession();
+    if (session) {
+      session.user = user;
+      persistSession(session);
+    }
+  },
+
   /** Demo accounts for the signin screen. */
   demoAccounts() {
     return MOCK_USERS.map(({ password: _p, ...u }) => u);

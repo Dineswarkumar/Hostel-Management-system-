@@ -1,35 +1,38 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { broadcastSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
+import { validateBody } from "@/lib/api";
+import { complaintRateSchema } from "@/lib/validation";
 
 export async function PATCH(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    const { id } = params;
-    const { rating } = await request.json();
+  const auth = await requireAuth(request, ["STUDENT"]);
+  if ("error" in auth) return auth.error;
 
-    if (!id || typeof rating !== "number") {
-      return NextResponse.json({ error: "ID and rating (number) are required" }, { status: 400 });
-    }
+  const v = await validateBody(request, complaintRateSchema);
+  if ("error" in v) return v.error;
 
-    const updated = await prisma.complaint.update({
-      where: { id },
-      data: { rating },
-    });
-
-    const parsed = {
-      ...updated,
-      photos: JSON.parse(updated.photos || "[]"),
-    };
-
-    // Broadcast rating update
-    broadcastSSE("UPDATE_COMPLAINT", parsed);
-
-    return NextResponse.json(parsed);
-  } catch (error: any) {
-    console.error("Rate complaint error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+  // Only the complaint owner can rate
+  const existing = await prisma.complaint.findUnique({ where: { id: params.id } });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (existing.userId !== auth.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  if (existing.status !== "RESOLVED" && existing.status !== "CLOSED") {
+    return NextResponse.json(
+      { error: "Can only rate resolved complaints" },
+      { status: 400 }
+    );
+  }
+
+  const updated = await prisma.complaint.update({
+    where: { id: params.id },
+    data: { rating: v.data.rating },
+  });
+  const parsed = { ...updated, photos: (() => { try { return JSON.parse(updated.photos); } catch { return []; } })() };
+  broadcastSSE("UPDATE_COMPLAINT", parsed);
+  return NextResponse.json(parsed);
 }

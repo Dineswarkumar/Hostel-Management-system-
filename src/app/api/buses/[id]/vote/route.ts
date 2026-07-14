@@ -1,96 +1,62 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { broadcastSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
+import { validateBody } from "@/lib/api";
+import { busVoteSchema } from "@/lib/validation";
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    const busId = params.id;
-    const { userId, type } = await request.json(); // type is "UP" | "DOWN"
+  const auth = await requireAuth(request, ["STUDENT"]);
+  if ("error" in auth) return auth.error;
 
-    if (!busId || !userId || !type) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
+  const v = await validateBody(request, busVoteSchema);
+  if ("error" in v) return v.error;
 
-    // Wrap the voting operation in a transaction to prevent race conditions
-    const result = await prisma.$transaction(async (tx) => {
-      // Find existing vote
-      const existingVote = await tx.busVote.findUnique({
-        where: {
-          busId_userId: {
-            busId,
-            userId,
-          },
-        },
-      });
+  if (v.data.userId !== auth.user.id) {
+    return NextResponse.json({ error: "userId does not match session" }, { status: 403 });
+  }
 
-      let newUserVote: "UP" | "DOWN" | null = null;
+  const busId = params.id;
+  const userId = auth.user.id;
+  const type = v.data.type;
 
-      if (existingVote) {
-        if (existingVote.type === type) {
-          // Double click same type: remove the vote
-          await tx.busVote.delete({
-            where: {
-              id: existingVote.id,
-            },
-          });
-          newUserVote = null;
-        } else {
-          // Click opposite type: update the vote
-          await tx.busVote.update({
-            where: {
-              id: existingVote.id,
-            },
-            data: {
-              type,
-            },
-          });
-          newUserVote = type;
-        }
-      } else {
-        // Create new vote
-        await tx.busVote.create({
-          data: {
-            busId,
-            userId,
-            type,
-          },
-        });
-        newUserVote = type;
-      }
-
-      // Recalculate upvotes / downvotes for the bus
-      const upvotesCount = await tx.busVote.count({
-        where: { busId, type: "UP" },
-      });
-
-      const downvotesCount = await tx.busVote.count({
-        where: { busId, type: "DOWN" },
-      });
-
-      // Update the bus
-      const updatedBus = await tx.bus.update({
-        where: { id: busId },
-        data: {
-          upvotes: upvotesCount,
-          downvotes: downvotesCount,
-          updatedAt: new Date(),
-        },
-      });
-
-      return { bus: updatedBus, userVote: newUserVote };
+  const result = await prisma.$transaction(async (tx) => {
+    const existing = await tx.busVote.findUnique({
+      where: { busId_userId: { busId, userId } },
     });
 
-    // Broadcast bus update (with new vote counts) in real-time
-    broadcastSSE("UPDATE_BUS", result.bus);
-    // Broadcast user specific vote to help trigger specific updates
-    broadcastSSE("USER_VOTE_UPDATE", { busId, userId, userVote: result.userVote });
+    let newUserVote: "UP" | "DOWN" | null = null;
 
-    return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("Vote bus error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
-  }
+    if (existing) {
+      if (existing.type === type) {
+        await tx.busVote.delete({ where: { id: existing.id } });
+        newUserVote = null;
+      } else {
+        await tx.busVote.update({ where: { id: existing.id }, data: { type } });
+        newUserVote = type;
+      }
+    } else {
+      await tx.busVote.create({ data: { busId, userId, type } });
+      newUserVote = type;
+    }
+
+    const [upvotes, downvotes] = await Promise.all([
+      tx.busVote.count({ where: { busId, type: "UP" } }),
+      tx.busVote.count({ where: { busId, type: "DOWN" } }),
+    ]);
+
+    const updatedBus = await tx.bus.update({
+      where: { id: busId },
+      data: { upvotes, downvotes, updatedAt: new Date() },
+    });
+
+    return { bus: updatedBus, userVote: newUserVote };
+  });
+
+  broadcastSSE("UPDATE_BUS", result.bus);
+  broadcastSSE("USER_VOTE_UPDATE", { busId, userId, userVote: result.userVote });
+  return NextResponse.json(result);
 }

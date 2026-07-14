@@ -146,14 +146,26 @@ const latency = () =>
 
 export const messService = {
   async getMenu(date?: string): Promise<MessMenu | null> {
-    await latency();
+    if (config.useMockData || typeof window === "undefined") {
+      const key = date ?? TODAY;
+      return MENU[key] ?? null;
+    }
+
     const key = date ?? TODAY;
-    return MENU[key] ?? null;
+    const res = await fetch(`/api/mess/menu/${key}`);
+    if (!res.ok) return null;
+    return res.json();
   },
 
   async listDishes(query?: string): Promise<Dish[]> {
-    await sleep(50);
-    return query ? searchDishes(query) : DISH_CATALOG;
+    if (config.useMockData || typeof window === "undefined") {
+      return query ? searchDishes(query) : DISH_CATALOG;
+    }
+
+    const q = query ? `?query=${encodeURIComponent(query)}` : "";
+    const res = await fetch(`/api/mess/dishes${q}`);
+    if (!res.ok) throw new Error("Failed to fetch dishes");
+    return res.json();
   },
 };
 

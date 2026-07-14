@@ -79,6 +79,17 @@ export const feesService = {
     return res.json();
   },
 
+  async listAll(): Promise<any[]> {
+    if (config.useMockData) {
+      await latency();
+      return INVOICES.sort((a, b) => b.month.localeCompare(a.month));
+    }
+
+    const res = await fetch("/api/fees");
+    if (!res.ok) throw new Error("Failed to fetch all invoices");
+    return res.json();
+  },
+
   async pay(invoiceId: string): Promise<FeeInvoice | null> {
     if (config.useMockData) {
       await latency();

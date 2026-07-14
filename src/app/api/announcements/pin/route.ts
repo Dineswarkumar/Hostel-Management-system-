@@ -1,34 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { broadcastSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
+import { validateBody } from "@/lib/api";
+import { announcementPinSchema } from "@/lib/validation";
 
-export async function POST(request: Request) {
-  try {
-    const { id } = await request.json();
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request, ["STAFF", "ADMIN", "SUPER_ADMIN"]);
+  if ("error" in auth) return auth.error;
 
-    if (!id) {
-      return NextResponse.json({ error: "ID is required" }, { status: 400 });
-    }
+  const v = await validateBody(request, announcementPinSchema);
+  if ("error" in v) return v.error;
 
-    const current = await prisma.announcement.findUnique({
-      where: { id },
-    });
-
-    if (!current) {
-      return NextResponse.json({ error: "Announcement not found" }, { status: 404 });
-    }
-
-    const updated = await prisma.announcement.update({
-      where: { id },
-      data: { pinned: !current.pinned },
-    });
-
-    // Broadcast pin update
-    broadcastSSE("UPDATE_ANNOUNCEMENT", updated);
-
-    return NextResponse.json(updated);
-  } catch (error: any) {
-    console.error("Toggle pin error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
-  }
+  const updated = await prisma.announcement.update({
+    where: { id: v.data.id },
+    data: { pinned: v.data.pinned },
+  });
+  broadcastSSE("UPDATE_ANNOUNCEMENT", updated);
+  return NextResponse.json(updated);
 }

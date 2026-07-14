@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { CreditCard, CheckCircle2, Download, Receipt, ShieldCheck } from "lucide-react";
+import { CreditCard, CheckCircle2, Download, Receipt, ShieldCheck, Search, TrendingUp, AlertCircle } from "lucide-react";
 import { useAuth, RoleGuard } from "@/features/auth";
 import { feesService, type FeeInvoice, type FeeStatus } from "@/features/fees";
 import { getRoomType } from "@/features/rooms/catalog";
@@ -12,14 +12,23 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
+import { Input } from "@/components/ui/input";
 import { formatINR, formatDate, cn } from "@/lib/utils";
 
 export default function FeesPage() {
   return (
     <RoleGuard>
-      <FeesContent />
+      <FeesWrapper />
     </RoleGuard>
   );
+}
+
+function FeesWrapper() {
+  const { user } = useAuth();
+  if (user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") {
+    return <AdminFeesView />;
+  }
+  return <FeesContent />;
 }
 
 function FeesContent() {
@@ -39,18 +48,119 @@ function FeesContent() {
 
   React.useEffect(() => { refresh(); }, [refresh]);
 
-  const handlePay = async (id: string) => {
-    setPaying(id);
-    try {
-      // Simulate payment
-      await new Promise((r) => setTimeout(r, 1500));
-      await feesService.pay(id);
-      toast({
-        title: "Payment successful",
-        description: "Receipt has been emailed and saved to your vault.",
-        tone: "success",
-      });
+  // Real-time SSE updates
+  React.useEffect(() => {
+    if (!user) return;
+    const es = new EventSource(`/api/realtime?userId=${user.id}`);
+
+    const handleUpdate = () => {
       refresh();
+    };
+
+    es.addEventListener("UPDATE_FEE", handleUpdate);
+
+    return () => {
+      es.close();
+    };
+  }, [user, refresh]);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePay = async (invoice: FeeInvoice) => {
+    if (!user) return;
+    setPaying(invoice.id);
+    try {
+      const resScript = await loadRazorpayScript();
+      if (!resScript) {
+        toast({ title: "Failed to load payment gateway", tone: "danger" });
+        return;
+      }
+
+      const orderRes = await fetch("/api/payments/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoiceId: invoice.id,
+          amount: invoice.total,
+        }),
+      });
+
+      if (!orderRes.ok) {
+        const err = await orderRes.json();
+        throw new Error(err.error || "Failed to initiate payment");
+      }
+
+      const orderData = await orderRes.json();
+
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "HostelHub",
+        description: `Hostel Fee — ${invoice.month}`,
+        order_id: orderData.isMock ? undefined : orderData.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch("/api/payments/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: orderData.id,
+                razorpay_payment_id: response.razorpay_payment_id || `pay_mock_${Date.now()}`,
+                razorpay_signature: response.razorpay_signature || "mock_signature",
+                invoiceId: invoice.id,
+                isMock: orderData.isMock,
+              }),
+            });
+
+            if (verifyRes.ok) {
+              toast({
+                title: "Payment successful",
+                description: "Receipt has been emailed and saved to your vault.",
+                tone: "success",
+              });
+              refresh();
+            } else {
+              toast({ title: "Payment verification failed", tone: "danger" });
+            }
+          } catch (e: any) {
+            toast({ title: "Verification failed", description: e.message, tone: "danger" });
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.phone || "",
+        },
+        theme: {
+          color: "#0F52BA",
+        },
+      };
+
+      if (orderData.isMock) {
+        const confirmPayment = confirm(
+          `[HostelHub Payment Sandbox]\n\nPay outstanding fee: ${formatINR(invoice.total)}?\n\nClick OK to simulate successful checkout.`
+        );
+        if (confirmPayment) {
+          options.handler({
+            razorpay_payment_id: `pay_mock_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            razorpay_signature: "mock_sandbox_sig",
+          });
+        }
+      } else {
+        const rzp1 = new (window as any).Razorpay(options);
+        rzp1.open();
+      }
+    } catch (e: any) {
+      toast({ title: "Payment error", description: e.message || "Failed to process payment", tone: "danger" });
     } finally {
       setPaying(null);
     }
@@ -69,7 +179,7 @@ function FeesContent() {
       {loading ? (
         <Skeleton className="h-48" />
       ) : outstanding ? (
-        <OutstandingCard invoice={outstanding} paying={paying === outstanding.id} onPay={() => handlePay(outstanding.id)} />
+        <OutstandingCard invoice={outstanding} paying={paying === outstanding.id} onPay={() => handlePay(outstanding)} />
       ) : (
         <AllPaidCard />
       )}
@@ -186,5 +296,181 @@ function HistoryRow({ invoice }: { invoice: FeeInvoice }) {
         </Button>
       </div>
     </GlassSurface>
+  );
+}
+
+function AdminFeesView() {
+  const [invoices, setInvoices] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [query, setQuery] = React.useState("");
+  const { toast } = useToast();
+
+  const refresh = React.useCallback(async () => {
+    try {
+      const data = await feesService.listAll();
+      setInvoices(data);
+    } catch (e: any) {
+      toast({ title: "Failed to load invoices", description: e.message, tone: "danger" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  React.useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  // Real-time SSE updates
+  React.useEffect(() => {
+    const es = new EventSource("/api/realtime");
+    const handleUpdate = () => {
+      refresh();
+    };
+    es.addEventListener("UPDATE_FEE", handleUpdate);
+    return () => es.close();
+  }, [refresh]);
+
+  const filtered = invoices.filter((inv) => {
+    const studentName = inv.user?.name || "";
+    const studentEmail = inv.user?.email || "";
+    const room = inv.user?.roomNumber || "";
+    const q = query.toLowerCase();
+    return (
+      studentName.toLowerCase().includes(q) ||
+      studentEmail.toLowerCase().includes(q) ||
+      room.toLowerCase().includes(q) ||
+      inv.month.includes(q) ||
+      inv.status.toLowerCase().includes(q)
+    );
+  });
+
+  const totalInvoices = invoices.length;
+  const totalPaid = invoices.filter((i) => i.status === "PAID").reduce((sum, i) => sum + i.total, 0);
+  const totalPending = invoices.filter((i) => i.status === "PENDING").reduce((sum, i) => sum + i.total, 0);
+  const paidCount = invoices.filter((i) => i.status === "PAID").length;
+  const pendingCount = invoices.filter((i) => i.status === "PENDING").length;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+          <Receipt className="h-7 w-7 text-primary" /> Fees Dashboard
+        </h1>
+        <p className="text-muted text-sm">Monitor student billing collections, paid records, and outstanding dues.</p>
+      </div>
+
+      {/* Diagnostics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <GlassSurface className="p-5 flex flex-col justify-between">
+          <div>
+            <span className="text-xs text-muted font-medium flex items-center gap-1.5">
+              <TrendingUp className="h-4 w-4 text-success" /> Total Collected
+            </span>
+            <div className="font-bold text-2xl text-success mt-2">{formatINR(totalPaid)}</div>
+          </div>
+          <div className="text-[10px] text-muted mt-3">From {paidCount} completed checkouts</div>
+        </GlassSurface>
+
+        <GlassSurface className="p-5 flex flex-col justify-between">
+          <div>
+            <span className="text-xs text-muted font-medium flex items-center gap-1.5">
+              <AlertCircle className="h-4 w-4 text-warning" /> Total Outstanding
+            </span>
+            <div className="font-bold text-2xl text-warning mt-2">{formatINR(totalPending)}</div>
+          </div>
+          <div className="text-[10px] text-muted mt-3">Across {pendingCount} unpaid student bills</div>
+        </GlassSurface>
+
+        <GlassSurface className="p-5 flex flex-col justify-between">
+          <div>
+            <span className="text-xs text-muted font-medium flex items-center gap-1.5">
+              <Receipt className="h-4 w-4 text-primary" /> Collection Rate
+            </span>
+            <div className="font-bold text-2xl text-primary mt-2">
+              {totalInvoices > 0 ? `${Math.round((paidCount / totalInvoices) * 100)}%` : "0%"}
+            </div>
+          </div>
+          <div className="text-[10px] text-muted mt-3">Total generated bills: {totalInvoices}</div>
+        </GlassSurface>
+      </div>
+
+      <GlassSurface className="p-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by student name, room, month, or transaction ID…"
+            className="pl-10"
+          />
+        </div>
+      </GlassSurface>
+
+      {loading ? (
+        <div className="space-y-3">
+          <Skeleton className="h-12" />
+          <Skeleton className="h-12" />
+          <Skeleton className="h-12" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <GlassSurface className="p-12 text-center text-sm text-muted">
+          No student invoices found matching your criteria.
+        </GlassSurface>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-border/30 glass-strong">
+          <table className="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-border/30 bg-surface-2/40 text-muted-foreground font-medium">
+                <th className="p-4">Student</th>
+                <th className="p-4">Month</th>
+                <th className="p-4 text-right">Amount</th>
+                <th className="p-4">Due Date</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Payment Details</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/20">
+              {filtered.map((inv) => (
+                <tr key={inv.id} className="hover:bg-surface-2/10 transition-colors">
+                  <td className="p-4">
+                    <div>
+                      <div className="font-semibold text-text">{inv.user?.name || "Deleted User"}</div>
+                      <div className="text-xs text-muted flex items-center gap-1.5 mt-0.5">
+                        <span>{inv.user?.email}</span>
+                        {inv.user?.roomNumber && (
+                          <span className="bg-surface-3 px-1.5 py-0.5 rounded text-[10px] border border-border/30">
+                            Room {inv.user?.roomNumber} {inv.user?.blockName ? `(${inv.user.blockName})` : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4 font-mono text-xs">{inv.month}</td>
+                  <td className="p-4 text-right font-semibold text-text">{formatINR(inv.total)}</td>
+                  <td className="p-4 text-xs text-muted">{formatDate(inv.dueDate)}</td>
+                  <td className="p-4">
+                    <Badge tone={inv.status === "PAID" ? "success" : "warning"}>
+                      {inv.status === "PAID" ? "Paid" : "Pending"}
+                    </Badge>
+                  </td>
+                  <td className="p-4 text-xs">
+                    {inv.status === "PAID" ? (
+                      <div className="space-y-0.5 text-muted">
+                        <div>Paid: {formatDate(inv.paidAt)}</div>
+                        <div className="font-mono text-[10px] text-primary truncate max-w-[150px]" title={inv.transactionId}>
+                          {inv.transactionId}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground italic">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }

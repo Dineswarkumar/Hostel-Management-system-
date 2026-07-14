@@ -1,119 +1,80 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { broadcastSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
+import { validateBody } from "@/lib/api";
+import { busSchema, busStatusSchema } from "@/lib/validation";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+const busUpdateSchema = busSchema.partial().extend({ id: z.string().min(1), status: busStatusSchema.shape.status.optional() });
 
-    const buses = await prisma.bus.findMany({
-      orderBy: { createdAt: "desc" },
-    });
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if ("error" in auth) return auth.error;
 
-    if (userId) {
-      const votes = await prisma.busVote.findMany({
-        where: { userId },
-      });
-      const votesMap = new Map(votes.map((v) => [v.busId, v.type]));
+  const buses = await prisma.bus.findMany({ orderBy: { createdAt: "desc" } });
 
-      const enriched = buses.map((b) => ({
-        ...b,
-        userVote: votesMap.get(b.id) || null,
-      }));
-      return NextResponse.json(enriched);
-    }
+  // Enrich with the current user's vote (one round-trip)
+  const votes = await prisma.busVote.findMany({ where: { userId: auth.user.id } });
+  const votesMap = new Map(votes.map((v) => [v.busId, v.type]));
 
-    return NextResponse.json(buses);
-  } catch (error: any) {
-    console.error("Fetch buses error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
-  }
+  const enriched = buses.map((b) => ({
+    ...b,
+    userVote: votesMap.get(b.id) ?? null,
+  }));
+  return NextResponse.json(enriched);
 }
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { name, time, description, createdById, createdByName } = body;
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request, ["ADMIN", "SUPER_ADMIN"]);
+  if ("error" in auth) return auth.error;
 
-    if (!name || !time || !description || !createdById || !createdByName) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
+  const v = await validateBody(request, busSchema);
+  if ("error" in v) return v.error;
 
-    const bus = await prisma.bus.create({
-      data: {
-        name: name.trim(),
-        time: time.trim(),
-        description: description.trim(),
-        status: "SCHEDULED",
-        upvotes: 0,
-        downvotes: 0,
-        createdById,
-        createdByName,
-      },
-    });
-
-    broadcastSSE("NEW_BUS", bus);
-
-    return NextResponse.json(bus);
-  } catch (error: any) {
-    console.error("Create bus error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
-  }
+  const bus = await prisma.bus.create({
+    data: {
+      name: v.data.name.trim(),
+      time: v.data.time.trim(),
+      description: v.data.description.trim(),
+      status: "SCHEDULED",
+      createdById: auth.user.id,
+      createdByName: auth.user.name,
+    },
+  });
+  broadcastSSE("NEW_BUS", bus);
+  return NextResponse.json(bus);
 }
 
-export async function PATCH(request: Request) {
-  try {
-    const body = await request.json();
-    const { id, status, name, time, description } = body;
+export async function PATCH(request: NextRequest) {
+  const auth = await requireAuth(request, ["ADMIN", "SUPER_ADMIN"]);
+  if ("error" in auth) return auth.error;
 
-    if (!id) {
-      return NextResponse.json({ error: "ID is required" }, { status: 400 });
-    }
+  const v = await validateBody(request, busUpdateSchema);
+  if ("error" in v) return v.error;
 
-    const data: any = {
-      updatedAt: new Date(),
-    };
+  const data: Record<string, unknown> = { updatedAt: new Date() };
+  if (v.data.name !== undefined) data.name = v.data.name.trim();
+  if (v.data.time !== undefined) data.time = v.data.time.trim();
+  if (v.data.description !== undefined) data.description = v.data.description.trim();
+  if (v.data.status !== undefined) data.status = v.data.status;
 
-    if (status !== undefined) data.status = status;
-    if (name !== undefined) data.name = name.trim();
-    if (time !== undefined) data.time = time.trim();
-    if (description !== undefined) data.description = description.trim();
-
-    const updated = await prisma.bus.update({
-      where: { id },
-      data,
-    });
-
-    broadcastSSE("UPDATE_BUS", updated);
-
-    return NextResponse.json(updated);
-  } catch (error: any) {
-    console.error("Update bus error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
-  }
+  const updated = await prisma.bus.update({ where: { id: v.data.id }, data });
+  broadcastSSE("UPDATE_BUS", updated);
+  return NextResponse.json(updated);
 }
 
-export async function DELETE(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+export async function DELETE(request: NextRequest) {
+  const auth = await requireAuth(request, ["ADMIN", "SUPER_ADMIN"]);
+  if ("error" in auth) return auth.error;
 
-    if (!id) {
-      return NextResponse.json({ error: "ID is required" }, { status: 400 });
-    }
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
-    await prisma.bus.delete({
-      where: { id },
-    });
-
-    broadcastSSE("DELETE_BUS", { id });
-
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("Delete bus error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
-  }
+  await prisma.bus.delete({ where: { id } });
+  broadcastSSE("DELETE_BUS", { id });
+  return NextResponse.json({ success: true });
 }

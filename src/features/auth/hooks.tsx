@@ -16,6 +16,7 @@ interface AuthContextValue {
     phone?: string;
   }) => Promise<void>;
   signOut: () => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
@@ -61,6 +62,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async signOut() {
         await authService.signOut();
         setUser(null);
+      },
+      updateUser(updatedUser) {
+        authService.updateSession(updatedUser);
+        setUser(updatedUser);
       },
     }),
     [user, loading]

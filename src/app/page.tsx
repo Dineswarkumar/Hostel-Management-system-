@@ -109,7 +109,7 @@ export default function LandingPage() {
         <div className="glass-strong border-b">
           <div className="container flex items-center justify-between h-16">
             <div className="flex items-center gap-2 font-bold text-lg">
-              <span className="h-8 w-8 rounded-lg skeuo-btn grid place-items-center text-sm">H</span>
+              <span className="h-8 w-8 rounded-lg skeuo-btn grid place-items-center text-sm">D</span>
               <span>{config.appName}</span>
             </div>
             <nav className="hidden md:flex items-center gap-6 text-sm">
@@ -141,7 +141,7 @@ export default function LandingPage() {
             Hostel management,
             <br />
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              beautifully done.
+              Quick Tech
             </span>
           </h1>
           <p className="text-muted text-lg md:text-xl mt-6 leading-relaxed">
@@ -165,45 +165,6 @@ export default function LandingPage() {
           </p>
         </motion.div>
 
-        {/* Hero preview card */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="mt-16 max-w-4xl mx-auto"
-        >
-          <GlassSurface intensity="default" className="p-6 md:p-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2 space-y-3">
-                <div className="flex items-center gap-2 text-xs text-muted">
-                  <span className="h-2 w-2 rounded-full bg-success animate-pulse" /> Live preview
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <PreviewCard title="Fee due" value="₹4,500" badge="Due 15 Jul" tone="warning" />
-                  <PreviewCard title="Bus in 24m" value="Route 1" badge="City Center" tone="primary" />
-                  <PreviewCard title="Open tickets" value="2" badge="1 high priority" tone="danger" />
-                  <PreviewCard title="Mess rating" value="4.3★" badge="23 ratings today" tone="success" />
-                </div>
-                <div className="neu-inset rounded-2xl p-3 flex items-center gap-3">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <div className="flex-1 text-sm">
-                    <div className="font-medium">Room 204 · Block B</div>
-                    <div className="text-xs text-muted">2-Seater · ₹6,000/month</div>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="text-xs font-medium text-muted">Today's bus</div>
-                <PreviewRoute time="07:30" route="Hostel → City Center" />
-                <PreviewRoute time="18:30" route="City Center → Hostel" />
-                <div className="flex gap-2">
-                  <Button size="sm" variant="neu" className="flex-1">👍 248</Button>
-                  <Button size="sm" variant="ghost" className="flex-1">👎 12</Button>
-                </div>
-              </div>
-            </div>
-          </GlassSurface>
-        </motion.div>
       </section>
 
       {/* Features */}
@@ -235,7 +196,6 @@ export default function LandingPage() {
           })}
         </div>
       </section>
-
       {/* Room types */}
       <section id="rooms" className="container py-16">
         <div className="text-center mb-12">
