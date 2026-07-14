@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Design Tokens — light & dark
+   Both modes are designed to feel premium.
+   ============================================ */
+@layer base {
+  :root {
+    /* Brand */
+    --primary: 79 95 245;        /* #4F5FF5 — vibrant indigo */
+    --primary-fg: 255 255 255;   /* white */
+    --accent: 244 114 89;        /* #F47259 — warm coral */
+    --accent-fg: 255 255 255;
+
+    /* Surfaces — light mode has a slight blue tint so glass stands out */
+    --bg: 240 243 249;           /* #F0F3F9 */
+    --surface: 255 255 255;      /* pure white for cards */
+    --surface-2: 232 236 244;    /* nested elements */
+    --surface-3: 220 226 238;
+
+    /* Text */
+    --text: 10 14 26;            /* #0A0E1A — high contrast */
+    --text-2: 36 42 60;          /* secondary */
+    --muted: 91 100 120;         /* #5B6478 */
+
+    /* Lines */
+    --border: 216 222 234;       /* visible but soft */
+    --border-strong: 196 204 222;
+
+    /* Status */
+    --success: 22 163 99;        /* #16A363 */
+    --warning: 217 138 26;       /* #D98A1A */
+    --danger: 217 56 67;         /* #D93843 */
+
+    /* Neumorphism shadows (light mode: shadows are subtle blue-gray) */
+    --neu-shadow-light: rgba(255, 255, 255, 0.95);
+    --neu-shadow-dark: rgba(170, 180, 210, 0.45);
+
+    /* Glass tint — slightly blue-white in light mode */
+    --glass-tint: 255 255 255;
+
+    /* Font */
+    --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  .dark {
+    --primary: 124 139 255;      /* #7C8BFF — lighter for dark bg */
+    --primary-fg: 10 14 26;     /* dark text on light primary */
+    --accent: 255 142 114;       /* #FF8E72 */
+    --accent-fg: 10 14 26;
+
+    --bg: 10 14 26;              /* #0A0E1A */
+    --surface: 26 31 44;         /* #1A1F2C */
+    --surface-2: 37 43 59;       /* #252B3B */
+    --surface-3: 48 55 75;
+
+    --text: 240 242 248;         /* #F0F2F8 */
+    --text-2: 200 206 220;
+    --muted: 144 153 172;        /* #9099AC */
+
+    --border: 45 52 71;          /* #2D3447 */
+    --border-strong: 65 73 96;
+
+    --success: 56 217 138;
+    --warning: 255 188 70;
+    --danger: 255 107 119;
+
+    --neu-shadow-light: rgba(60, 70, 95, 0.45);
+    --neu-shadow-dark: rgba(0, 0, 0, 0.55);
+
+    --glass-tint: 26 31 44;
+  }
+}
+
+/* ============================================
+   Base
+   ============================================ */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: rgb(var(--border));
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background-color: rgb(var(--bg));
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: rgb(var(--bg));
+    color: rgb(var(--text));
+    font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Override the dark default to be a proper dark, not a washed-out gray */
+  html.dark body {
+    background-color: rgb(var(--bg));
+  }
+
+  ::selection {
+    background: rgb(var(--primary) / 0.3);
+    color: rgb(var(--text));
+  }
+
+  /* Focus ring */
+  :focus-visible {
+    outline: 2px solid rgb(var(--primary));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--border-strong));
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--muted) / 0.5);
+    background-clip: padding-box;
+  }
+
+  /* Headings inherit text color */
+  h1, h2, h3, h4, h5, h6 {
+    color: rgb(var(--text));
+  }
+}
+
+/* ============================================
+   Component utilities
+   ============================================ */
+@layer components {
+  /* Glassmorphism — visible in both light and dark modes */
+  .glass {
+    @apply backdrop-blur-2xl border shadow-glass;
+    background: rgb(var(--glass-tint) / 0.7);
+    border-color: rgb(var(--border) / 0.6);
+  }
+  .glass-strong {
+    @apply backdrop-blur-3xl border shadow-glass;
+    background: rgb(var(--glass-tint) / 0.88);
+    border-color: rgb(var(--border) / 0.7);
+  }
+  .glass-subtle {
+    @apply backdrop-blur-xl border shadow-glass-sm;
+    background: rgb(var(--glass-tint) / 0.55);
+    border-color: rgb(var(--border) / 0.5);
+  }
+
+  /* Neumorphism */
+  .neu {
+    @apply shadow-neu-out;
+    background: rgb(var(--bg));
+  }
+  .neu-inset {
+    @apply shadow-neu-in;
+    background: rgb(var(--bg));
+  }
+  .neu-sm {
+    @apply shadow-neu-out-sm;
+    background: rgb(var(--bg));
+  }
+
+  /* Skeuomorphic primary button — uses token-based fg for theme awareness */
+  .skeuo-btn {
+    @apply shadow-skeuo font-medium;
+    background: linear-gradient(180deg, rgb(var(--primary)) 0%, rgb(var(--primary) / 0.85) 100%);
+    color: rgb(var(--primary-fg));
+  }
+  .skeuo-btn-accent {
+    @apply shadow-skeuo-accent font-medium;
+    background: linear-gradient(180deg, rgb(var(--accent)) 0%, rgb(var(--accent) / 0.85) 100%);
+    color: rgb(var(--accent-fg));
+  }
+
+  /* Mesh gradient background — works in both modes */
+  .mesh-bg {
+    background-color: rgb(var(--bg));
+    background-image:
+      radial-gradient(at 18% 22%, rgb(var(--primary) / 0.18) 0px, transparent 50%),
+      radial-gradient(at 82% 12%, rgb(var(--accent) / 0.15) 0px, transparent 50%),
+      radial-gradient(at 50% 85%, rgb(var(--primary) / 0.12) 0px, transparent 55%),
+      radial-gradient(at 92% 92%, rgb(var(--accent) / 0.10) 0px, transparent 50%);
+  }
+  .dark .mesh-bg {
+    background-image:
+      radial-gradient(at 18% 22%, rgb(var(--primary) / 0.22) 0px, transparent 50%),
+      radial-gradient(at 82% 12%, rgb(var(--accent) / 0.18) 0px, transparent 50%),
+      radial-gradient(at 50% 85%, rgb(var(--primary) / 0.16) 0px, transparent 55%),
+      radial-gradient(at 92% 92%, rgb(var(--accent) / 0.14) 0px, transparent 50%);
+  }
+
+  /* Shimmer for skeletons */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgb(var(--surface-2) / 0.5) 0%,
+      rgb(var(--surface-2) / 0.9) 50%,
+      rgb(var(--surface-2) / 0.5) 100%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+}
+
+/* ============================================
+   Reduced motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
