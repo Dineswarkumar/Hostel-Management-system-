@@ -86,9 +86,11 @@ export function TopNav() {
               {ROLE_LABEL[user.role]}
             </Badge>
             <ThemeToggle />
-            <Button variant="ghost" size="icon" aria-label="Notifications">
-              <Bell className="h-4 w-4" />
-            </Button>
+            <Link href="/announcements" title="Announcements">
+              <Button variant="ghost" size="icon" aria-label="Notifications">
+                <Bell className="h-4 w-4" />
+              </Button>
+            </Link>
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
