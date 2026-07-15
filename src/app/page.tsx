@@ -184,7 +184,7 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05, duration: 0.4 }}
               >
-                <GlassSurface intensity="default" className="p-6 h-full">
+                <GlassSurface intensity="default" className="p-6 h-full hover:border-primary/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] hover:-translate-y-1.5 transition-all duration-300">
                   <div className="h-10 w-10 rounded-xl skeuo-btn grid place-items-center mb-4">
                     <Icon className="h-5 w-5" />
                   </div>
@@ -205,7 +205,7 @@ export default function LandingPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {ROOM_TYPES.map((rt) => (
-            <GlassSurface key={rt.id} intensity="default" className="p-6 flex flex-col">
+            <GlassSurface key={rt.id} intensity="default" className="p-6 flex flex-col hover:border-primary/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] hover:-translate-y-1.5 transition-all duration-300">
               <div className="flex items-start justify-between mb-3">
                 <div className="text-3xl">{rt.emoji}</div>
                 {rt.badge && (
@@ -236,7 +236,7 @@ export default function LandingPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {ROLES.map((r) => (
-            <GlassSurface key={r.role} intensity="default" className="p-6">
+            <GlassSurface key={r.role} intensity="default" className="p-6 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] hover:-translate-y-1.5 transition-all duration-300">
               <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${r.accent} grid place-items-center mb-3`}>
                 <Users className="h-5 w-5 text-white drop-shadow" />
               </div>
@@ -259,8 +259,18 @@ export default function LandingPage() {
         </GlassSurface>
       </section>
 
-      <footer className="container py-8 text-center text-xs text-muted border-t border-border/50">
-        © {new Date().getFullYear()} {config.appName} · Built with care.
+      <footer className="container py-12 text-center border-t border-border/50 space-y-4">
+        <div className="flex flex-col items-center gap-2">
+          <div className="text-sm font-semibold text-text">
+            HostelHub Portal
+          </div>
+          <p className="text-xs text-muted max-w-sm">
+            Built with ❤️ by <a href="https://github.com/Dineswarkumar" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">Dineswara Kumar</a>, a B-Tech student at <span className="font-medium text-text">IIIT Nagpur</span>.
+          </p>
+        </div>
+        <div className="text-[10px] text-muted-foreground">
+          © {new Date().getFullYear()} HostelHub · All rights reserved.
+        </div>
       </footer>
     </div>
   );
