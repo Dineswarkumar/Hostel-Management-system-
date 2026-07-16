@@ -88,21 +88,21 @@ export function TopNav() {
           <>
             <Link
               href="/account"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <UserIcon className="h-4 w-4 text-primary" /> Profile
             </Link>
             <Link
               href="/account/settings"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <Settings className="h-4 w-4 text-primary" /> Settings
             </Link>
             <Link
               href="/mess"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <UtensilsCrossed className="h-4 w-4 text-primary" /> Mess
@@ -115,14 +115,14 @@ export function TopNav() {
           <>
             <Link
               href="/account"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <UserIcon className="h-4 w-4 text-primary" /> Profile
             </Link>
             <Link
               href="/account/settings"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <Settings className="h-4 w-4 text-primary" /> Settings
@@ -137,14 +137,14 @@ export function TopNav() {
           <>
             <Link
               href="/account"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <UserIcon className="h-4 w-4 text-primary" /> Profile
             </Link>
             <Link
               href="/account/settings"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <Settings className="h-4 w-4 text-primary" /> Settings
@@ -152,21 +152,21 @@ export function TopNav() {
             <div className="border-t border-border/20 my-1.5" />
             <Link
               href="/admin/users"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <Users className="h-4 w-4 text-accent" /> Users Directory
             </Link>
             <Link
               href="/admin/registration"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <Building2 className="h-4 w-4 text-accent" /> Registration
             </Link>
             <Link
               href="/admin/system"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <ShieldCheck className="h-4 w-4 text-accent" /> System Admin
@@ -181,14 +181,14 @@ export function TopNav() {
           <>
             <Link
               href="/account"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <UserIcon className="h-4 w-4 text-primary" /> Profile
             </Link>
             <Link
               href="/account/settings"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <Settings className="h-4 w-4 text-primary" /> Settings
@@ -196,35 +196,35 @@ export function TopNav() {
             <div className="border-t border-border/20 my-1.5" />
             <Link
               href="/mess"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <UtensilsCrossed className="h-4 w-4 text-accent" /> Mess Details
             </Link>
             <Link
               href="/bus"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <Bus className="h-4 w-4 text-accent" /> Bus Services
             </Link>
             <Link
               href="/complaints"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <Wrench className="h-4 w-4 text-accent" /> Complaints
             </Link>
             <Link
               href="/leaves"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <CalendarCheck className="h-4 w-4 text-accent" /> Outpass & Leaves
             </Link>
             <Link
               href="/fees"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-surface-2/60 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
               onClick={handleItemClick}
             >
               <CreditCard className="h-4 w-4 text-accent" /> Fees Ledger
@@ -239,8 +239,8 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-40 p-4 pb-0 w-full max-w-7xl mx-auto">
-      <div className="liquid-glass transition-all duration-300">
-        <div className="px-5 md:px-7 flex items-center justify-between h-16">
+      <div className="liquid-glass rounded-full transition-all duration-300">
+        <div className="px-6 md:px-8 flex items-center justify-between h-16">
           
           {/* Logo & Home Link */}
           <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg shrink-0">
@@ -330,7 +330,7 @@ export function TopNav() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-12 z-40 w-60 liquid-glass p-2 shadow-xl animate-scale-in"
+                      className="absolute right-0 top-12 z-40 w-60 liquid-glass rounded-2xl p-2 shadow-xl animate-scale-in"
                     >
                       <div className="p-3 border-b border-border/20 mb-1.5">
                         <div className="font-semibold text-sm truncate text-text">{user.name}</div>
@@ -349,7 +349,7 @@ export function TopNav() {
                           await signOut();
                           window.location.href = "/";
                         }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-danger/15 text-danger font-medium transition-colors"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-danger/10 hover:backdrop-blur-sm text-danger font-medium transition-colors"
                       >
                         <LogOut className="h-4 w-4" /> Sign out
                       </button>
