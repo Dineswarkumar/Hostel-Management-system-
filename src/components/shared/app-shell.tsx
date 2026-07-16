@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col scroll-smooth">
       <TopNav />
-      <main className="flex-1 container mx-auto px-4 py-6 pb-28">
+      <main className="flex-1 container mx-auto px-4 py-6 pb-28 md:pb-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}

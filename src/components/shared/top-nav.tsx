@@ -23,6 +23,35 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "./theme-toggle";
 
+const CENTER_TABS: Record<string, Array<{ href: string; label: string }>> = {
+  STUDENT: [
+    { href: "/dashboard", label: "Home" },
+    { href: "/bus", label: "Bus" },
+    { href: "/complaints", label: "Complaints" },
+    { href: "/fees", label: "Fees" },
+    { href: "/leaves", label: "Outpass" },
+  ],
+  STAFF: [
+    { href: "/dashboard", label: "Home" },
+    { href: "/complaints", label: "Tasks" },
+    { href: "/admin/attendance", label: "Attendance" },
+    { href: "/leaves", label: "Outpass" },
+  ],
+  ADMIN: [
+    { href: "/dashboard", label: "Home" },
+    { href: "/complaints", label: "Complaints" },
+    { href: "/fees", label: "Fees" },
+    { href: "/bus", label: "Bus" },
+    { href: "/leaves", label: "Outpass" },
+  ],
+  SUPER_ADMIN: [
+    { href: "/dashboard", label: "Home" },
+    { href: "/admin/users", label: "Users" },
+    { href: "/admin/system", label: "System" },
+    { href: "/admin/registration", label: "Registration" },
+  ],
+};
+
 export function TopNav() {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
@@ -30,6 +59,8 @@ export function TopNav() {
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   if (!user) return null;
+
+  const centerTabs = CENTER_TABS[user.role] ?? CENTER_TABS.STUDENT;
 
   // Handle dropdown open on hover for PC, with delay to prevent flickering
   const handleMouseEnter = () => {
@@ -40,7 +71,7 @@ export function TopNav() {
   const handleMouseLeave = () => {
     timeoutRef.current = setTimeout(() => {
       setMenuOpen(false);
-    }, 150); // slight delay to cross hover gap
+    }, 150);
   };
 
   const toggleMenu = () => {
@@ -224,6 +255,25 @@ export function TopNav() {
               HostelHub
             </span>
           </Link>
+
+          {/* Desktop Navigation Links (PC center only) */}
+          <nav className="hidden md:flex items-center gap-1 bg-surface-2/40 p-1 rounded-full border border-border/15">
+            {centerTabs.map((it) => {
+              const active = pathname === it.href || pathname?.startsWith(it.href + "/");
+              return (
+                <Link
+                  key={it.href}
+                  href={it.href}
+                  className={
+                    "px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all relative overflow-hidden active:scale-95 " +
+                    (active ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2/30")
+                  }
+                >
+                  {it.label}
+                </Link>
+              );
+            })}
+          </nav>
 
           {/* Right Header Navigation Panel */}
           <div className="flex items-center gap-3">
