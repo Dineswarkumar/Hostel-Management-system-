@@ -40,6 +40,7 @@ const STAFF_TABS: TabItem[] = [
 const ADMIN_TABS: TabItem[] = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/complaints", label: "Complaints", icon: Wrench },
+  { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
   { href: "/fees", label: "Fees", icon: CreditCard },
   { href: "/bus", label: "Bus", icon: Bus },
   { href: "/leaves", label: "Outpass", icon: CalendarCheck },
