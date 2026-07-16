@@ -66,7 +66,7 @@ export function BottomTabs() {
   const tabs = TABS[user.role] ?? STUDENT_TABS;
 
   return (
-    <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-lg md:max-w-xl px-2 py-1.5 rounded-2xl glass-strong border border-border/30 shadow-2xl backdrop-blur-xl flex items-center justify-around transition-all duration-300">
+    <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-lg md:max-w-xl px-2 py-1.5 liquid-glass flex items-center justify-around transition-all duration-300">
       {tabs.map((t) => {
         const active = pathname === t.href || pathname?.startsWith(t.href + "/");
         const Icon = t.icon;

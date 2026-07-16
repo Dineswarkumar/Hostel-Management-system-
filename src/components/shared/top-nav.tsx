@@ -208,8 +208,8 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-40 p-4 pb-0 w-full max-w-7xl mx-auto">
-      <div className="glass-strong border border-border/30 rounded-2xl shadow-lg backdrop-blur-xl transition-all duration-300">
-        <div className="px-4 md:px-6 flex items-center justify-between h-16">
+      <div className="liquid-glass transition-all duration-300">
+        <div className="px-5 md:px-7 flex items-center justify-between h-16">
           
           {/* Logo & Home Link */}
           <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg shrink-0">
@@ -280,7 +280,7 @@ export function TopNav() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-12 z-40 w-60 glass-strong border border-border/30 rounded-2xl p-2 shadow-xl animate-scale-in"
+                      className="absolute right-0 top-12 z-40 w-60 liquid-glass p-2 shadow-xl animate-scale-in"
                     >
                       <div className="p-3 border-b border-border/20 mb-1.5">
                         <div className="font-semibold text-sm truncate text-text">{user.name}</div>
