@@ -40,6 +40,7 @@ const CENTER_TABS: Record<string, Array<{ href: string; label: string }>> = {
   ADMIN: [
     { href: "/dashboard", label: "Home" },
     { href: "/complaints", label: "Complaints" },
+    { href: "/admin/attendance", label: "Attendance" },
     { href: "/fees", label: "Fees" },
     { href: "/bus", label: "Bus" },
     { href: "/leaves", label: "Outpass" },
