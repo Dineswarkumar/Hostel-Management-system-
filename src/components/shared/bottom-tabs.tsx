@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Bus, Wrench, CreditCard, UtensilsCrossed, MoreHorizontal } from "lucide-react";
+import { Home, Bus, Wrench, CreditCard, UtensilsCrossed, MoreHorizontal, CalendarCheck } from "lucide-react";
 import { useAuth } from "@/features/auth";
 
 interface TabItem {
@@ -23,6 +23,7 @@ const STUDENT_TABS: TabItem[] = [
 const STAFF_TABS: TabItem[] = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/complaints", label: "Tasks", icon: Wrench },
+  { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
   { href: "/announcements", label: "Notices", icon: MoreHorizontal },
 ];
 
@@ -30,8 +31,8 @@ const ADMIN_TABS: TabItem[] = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/announcements", label: "Notices", icon: MoreHorizontal },
   { href: "/complaints", label: "Tickets", icon: Wrench },
-  { href: "/bus", label: "Bus", icon: Bus },
-  { href: "/fees", label: "Fees", icon: CreditCard },
+  { href: "/admin/attendance", label: "Attendance", icon: CalendarCheck },
+  { href: "/admin/registration", label: "Registration", icon: CreditCard },
 ];
 
 const TABS: Record<string, TabItem[]> = {

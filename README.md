@@ -22,6 +22,8 @@ npm run dev
 
 That's it. No env vars required for the mock layer.
 
+Deployment link --- https://hostel-management-system-ml8f.onrender.com/
+
 ### Demo accounts
 
 Click any of these on the sign-in screen (or paste the email + password `demo1234`):
@@ -274,6 +276,3 @@ See `PLAN.md` for the full milestone breakdown.
 
 ---
 
-## License
-
-MIT — built with care.

@@ -28,6 +28,8 @@ model User {
   announcements Announcement[]
   leaves        Leave[]
   invoices      FeeInvoice[]
+  registrations HostelRegistration[]
+  attendances   Attendance[]
 }
 
 model Announcement {
@@ -124,4 +126,39 @@ model Leave {
   updatedAt    DateTime @updatedAt
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RegistrationWindow {
+  id        String   @id @default("active_window")
+  isOpen    Boolean  @default(false)
+  startedAt DateTime?
+  updatedAt DateTime @updatedAt
+}
+
+model HostelRegistration {
+  id        String   @id @default(uuid())
+  userId    String?
+  name      String
+  phone     String
+  roomType  String   // "SINGLE_SEATER" | "TWO_SEATER" | "THREE_SEATER" | "FOUR_SEATER"
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Attendance {
+  id           String   @id @default(uuid())
+  userId       String
+  userName     String
+  userRoom     String?
+  date         String   // "YYYY-MM-DD"
+  status       String   // "PRESENT" | "ABSENT" | "LATE"
+  markedById   String?
+  markedByName String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }

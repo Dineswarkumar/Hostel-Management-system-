@@ -24,6 +24,7 @@ const NAV_ITEMS: Record<string, Array<{ href: string; label: string }>> = {
     { href: "/announcements", label: "Announcements" },
     { href: "/complaints", label: "Tasks" },
     { href: "/leaves", label: "Leaves" },
+    { href: "/admin/attendance", label: "Attendance" },
   ],
   ADMIN: [
     { href: "/dashboard", label: "Dashboard" },
@@ -34,12 +35,16 @@ const NAV_ITEMS: Record<string, Array<{ href: string; label: string }>> = {
     { href: "/mess", label: "Mess" },
     { href: "/fees", label: "Fees" },
     { href: "/admin/users", label: "Users" },
+    { href: "/admin/attendance", label: "Attendance" },
+    { href: "/admin/registration", label: "Registration" },
   ],
   SUPER_ADMIN: [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/announcements", label: "Announcements" },
     { href: "/admin/users", label: "Users" },
     { href: "/fees", label: "Fees" },
+    { href: "/admin/attendance", label: "Attendance" },
+    { href: "/admin/registration", label: "Registration" },
     { href: "/admin/system", label: "System" },
   ],
 };
