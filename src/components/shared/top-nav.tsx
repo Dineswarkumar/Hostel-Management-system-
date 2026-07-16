@@ -165,13 +165,6 @@ export function TopNav() {
             >
               <Building2 className="h-4 w-4 text-accent" /> Registration
             </Link>
-            <Link
-              href="/admin/system"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-primary/10 hover:backdrop-blur-sm transition-all duration-200"
-              onClick={handleItemClick}
-            >
-              <ShieldCheck className="h-4 w-4 text-accent" /> System Admin
-            </Link>
           </>
         );
 
